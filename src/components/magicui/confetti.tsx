@@ -98,21 +98,28 @@ interface ConfettiButtonProps extends ButtonProps {
   options?: ConfettiOptions &
     ConfettiGlobalOptions & { canvas?: HTMLCanvasElement };
   children?: React.ReactNode;
+  triggerAnimation?: boolean;
 }
 
-function ConfettiButton({ options, children, ...props }: ConfettiButtonProps) {
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = rect.left + rect.width / 2;
-    const y = rect.top + rect.height / 2;
-    confetti({
-      ...options,
-      origin: {
-        x: x / window.innerWidth,
-        y: y / window.innerHeight,
-      },
-    });
-  };
+function ConfettiButton({
+  options,
+  children,
+  triggerAnimation,
+  ...props
+}: ConfettiButtonProps) {
+  useEffect(() => {
+    if (triggerAnimation) {
+      confetti({
+        ...options,
+        origin: {
+          x: 0.5,
+          y: 0.5,
+        },
+      });
+    }
+  }, [triggerAnimation, options]);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {};
 
   return (
     <Button onClick={handleClick} {...props}>

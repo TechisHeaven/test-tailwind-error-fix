@@ -18,8 +18,11 @@ import Error from "./error";
 import * as Yup from "Yup";
 
 const Login = () => {
-  const [errors, setErrors] = useState([]);
-
+  const [formState, setFormState] = useState({
+    isValidForm: false,
+    isSubmitting: false,
+    errors: [],
+  });
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -31,7 +34,11 @@ const Login = () => {
   };
 
   const handleLogin = async () => {
-    setErrors([]);
+    setFormState({
+      isSubmitting: true,
+      isValidForm: false,
+      errors: [],
+    });
     try {
       const schema = Yup.object().shape({
         email: Yup.string()
@@ -42,13 +49,21 @@ const Login = () => {
           .required("Password is required"),
       });
       await schema.validate(formData, { abortEarly: false });
+      setFormState({
+        isSubmitting: false,
+        isValidForm: true,
+        errors: [],
+      });
     } catch (e) {
       const newErrors = {};
       e?.inner?.forEach((err) => {
         newErrors[err.path] = err.message;
       });
-
-      setErrors(newErrors);
+      setFormState({
+        isSubmitting: false,
+        isValidForm: false,
+        errors: newErrors,
+      });
     }
   };
 
@@ -72,21 +87,27 @@ const Login = () => {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="m@example.com"
               required
               onChange={handleInputChange}
             />
-            {errors.email && <Error message={errors.email} />}
+            {formState.errors.email && (
+              <Error message={formState.errors.email} />
+            )}
           </div>
           <div className="grid gap-2 relative">
             <Label htmlFor="password">Password</Label>
             <div className="flex items-center">
               <Input
+                name="password"
                 id="password"
                 type={passwordVisible ? "text" : "password"}
                 required
+                placeholder="********"
                 className=""
+                onChange={handleInputChange}
               />
               <button
                 type="button"
@@ -96,12 +117,22 @@ const Login = () => {
                 {passwordVisible ? <Eye /> : <EyeOff />}
               </button>
             </div>
-            {errors.password && <Error message={errors.password} />}
+            {formState.errors.password && (
+              <Error message={formState.errors.password} />
+            )}
           </div>
         </CardContent>
         <CardFooter>
-          <ConfettiButton onClick={handleLogin} className="w-full">
-            {true ? <BeatLoader size={10} color="#262626" /> : "Sign In"}
+          <ConfettiButton
+            className="w-full"
+            onClick={handleLogin}
+            triggerAnimation={formState.isValidForm}
+          >
+            {formState.isSubmitting ? (
+              <BeatLoader size={10} color="#262626" />
+            ) : (
+              "Sign In"
+            )}
           </ConfettiButton>
         </CardFooter>
       </Card>
